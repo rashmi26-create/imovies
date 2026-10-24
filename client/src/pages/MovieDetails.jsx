@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { initialMovies, initialShowtimes } from '../data/initialData';
 
 export default function MovieDetails() {
   const { id } = useParams();
@@ -23,9 +24,12 @@ export default function MovieDetails() {
         api.get(`/showtimes/movie/${id}`)
       ]);
       setMovie(movieRes.data);
-      setShowtimes(showtimesRes.data);
+      setShowtimes(Array.isArray(showtimesRes.data) && showtimesRes.data.length > 0 ? showtimesRes.data : initialShowtimes);
     } catch (err) {
-      console.error('Failed to load movie details:', err);
+      // Fallback for Vercel static deployment
+      const fallbackMovie = initialMovies.find(m => m._id === id || m.id === id) || initialMovies[0];
+      setMovie(fallbackMovie);
+      setShowtimes(initialShowtimes);
     } finally {
       setLoading(false);
     }

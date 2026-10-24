@@ -2,14 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { initialMovies } from '../data/initialData';
 
 const GENRES = ['All Films', 'Action', 'Drama', 'Horror', 'Comedy', 'Sci-Fi', 'Adventure', 'Biography'];
 
 export default function Home({ searchQuery = '' }) {
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState(initialMovies);
   const [selectedGenre, setSelectedGenre] = useState('All Films');
   const [selectedLang, setSelectedLang] = useState('All');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
   const navigate = useNavigate();
 
@@ -18,7 +19,6 @@ export default function Home({ searchQuery = '' }) {
   }, [selectedGenre, selectedLang, searchQuery]);
 
   const fetchMovies = async () => {
-    setLoading(true);
     try {
       const params = {};
       if (selectedGenre !== 'All Films') params.genre = selectedGenre;
@@ -26,19 +26,38 @@ export default function Home({ searchQuery = '' }) {
       if (searchQuery) params.search = searchQuery;
 
       const res = await api.get('/movies', { params });
-      setMovies(res.data);
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setMovies(res.data);
+        return;
+      }
     } catch (err) {
-      console.error('Failed to load movies:', err);
-    } finally {
-      setLoading(false);
+      // Backend not yet reachable on static deploy - filter initial dataset
     }
+
+    // High-resilience client-side filtering
+    let filtered = [...initialMovies];
+    if (selectedGenre !== 'All Films') {
+      filtered = filtered.filter(m => (m.genre || []).some(g => g.toLowerCase() === selectedGenre.toLowerCase()));
+    }
+    if (selectedLang !== 'All') {
+      filtered = filtered.filter(m => m.language?.toLowerCase() === selectedLang.toLowerCase());
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(m =>
+        m.title.toLowerCase().includes(q) ||
+        m.description.toLowerCase().includes(q) ||
+        (m.genre || []).some(g => g.toLowerCase().includes(q))
+      );
+    }
+    setMovies(filtered);
   };
 
-  const heroMovie = movies.find(m => m.isTrending) || movies[0];
+  const heroMovie = movies.find(m => m.isTrending) || movies[0] || initialMovies[0];
 
   return (
     <div className="home-container">
-      {/* Hero Banner (Baahubali 2 / Trending Hero) */}
+      {/* Hero Banner (Baahubali 2) */}
       {heroMovie && (
         <section className="hero-banner-section mb-5 position-relative rounded-4 overflow-hidden">
           <div
@@ -139,9 +158,7 @@ export default function Home({ searchQuery = '' }) {
         </div>
 
         {/* Movie Cards Grid */}
-        {loading ? (
-          <div className="text-center py-5 text-muted">Loading cinema catalog...</div>
-        ) : movies.length === 0 ? (
+        {movies.length === 0 ? (
           <div className="text-center py-5">
             <h4 className="text-muted">No movies matching your selection</h4>
             <button className="btn btn-outline-warning mt-3" onClick={() => { setSelectedGenre('All Films'); setSelectedLang('All'); }}>
