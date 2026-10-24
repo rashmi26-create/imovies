@@ -1,6 +1,7 @@
 node_modules/
+client/dist/
 .env
-data/local_store.json
+data_store.json
 *.log
 .DS_Store
 Thumbs.db

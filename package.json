@@ -1,28 +1,20 @@
 {
-  "name": "imovies",
+  "name": "imovies-mern",
   "version": "1.0.0",
-  "description": "IMovies - Seamless Online Movie Ticket Booking Platform (MERN Stack)",
-  "main": "server.js",
+  "description": "IMovies - Movie ticket booking made simple (MERN Stack)",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "seed": "node -e \"require('./data/seedData.js').seedDatabase()\""
+    "start": "node server/server.js",
+    "server": "node server/server.js",
+    "seed": "node server/seed/seed.js",
+    "client": "npm run dev --prefix client"
   },
   "keywords": [
-    "movie-booking",
     "mern",
+    "movie-booking",
     "express",
-    "mongodb",
-    "cinema-tickets"
+    "react",
+    "mongodb"
   ],
-  "author": "IMovies Team",
-  "license": "MIT",
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.4.0"
-  }
+  "author": "Aaradhya Sharma",
+  "license": "MIT"
 }
